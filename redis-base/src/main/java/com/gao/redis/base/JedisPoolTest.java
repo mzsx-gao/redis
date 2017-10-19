@@ -16,6 +16,7 @@ public class JedisPoolTest {
     @Before
     public void beforeTest(){
 
+        //如果要想使用Jedis连接池,则必须有一个类可以保存所有连接池相关属性的配置项
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         poolConfig.setMaxTotal(1000);//设置最大连接数
         poolConfig.setMaxIdle(200);//最大空闲连接数
