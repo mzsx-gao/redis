@@ -9,6 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>redis-base</module>
+        <module>redis-spring-data</module>
     </modules>
     <packaging>pom</packaging>
 

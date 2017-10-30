@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+
+    <!-- 定义RedisCluster的配置项 -->
+    <bean id="redisClusterConfiguration"
+          class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+        <property name="maxRedirects" value="${redis.cluster.max-redirect}"/>
+        <property name="clusterNodes">		<!-- 配置出集群中所有的节点 -->
+            <list>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-1.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-1.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-2.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-2.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-3.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-3.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-4.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-4.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-5.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-5.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-6.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-6.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-7.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-7.port}"/>
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="${redis.cluster.node-8.host}"/>
+                    <constructor-arg index="1" value="${redis.cluster.node-8.port}"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 首先进行Jedis连接池的相关配置 -->
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="${redis.pool.maxTotal}"/>	<!-- 最大可用连接数 -->
+        <property name="maxIdle" value="${redis.pool.maxIdle}"/>	<!-- 最小维持连接数 -->
+        <property name="maxWaitMillis" value="${redis.pool.maxWaitMillis}"/>	<!-- 最大等待时间 -->
+    </bean>
+    <!-- 进行ConnectionFactory的配置 -->
+    <bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <constructor-arg name="clusterConfig" ref="redisClusterConfiguration"/>
+        <property name="poolConfig" ref="jedisPoolConfig"/>	<!-- 引用进行连接池的配置项 -->
+    </bean>
+    <!-- 如果要进行Redis处理用户应该不去关注具体的序列化或反序列化操作，这一切都应该交给SpringData处理 -->
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>	<!-- 定义Redis连接工厂 -->
+        <property name="keySerializer">	<!-- 定义序列化Key的程序处理类 -->
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <property name="valueSerializer">	<!-- 处理value数据的操作 -->
+            <!-- 明确表示如果要进行value数据保存的时候，保存的对象一定要使用JDK提供的序列化处理类 -->
+            <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+        </property>
+        <property name="hashKeySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <property name="hashValueSerializer">	<!-- 处理hash数据的保存 -->
+            <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+        </property>
+    </bean>
+</beans>
+
