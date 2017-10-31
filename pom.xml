@@ -10,6 +10,7 @@
     <modules>
         <module>redis-base</module>
         <module>redis-spring-data</module>
+        <module>redis-springboot</module>
     </modules>
     <packaging>pom</packaging>
 
