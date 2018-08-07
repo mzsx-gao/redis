@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by gao on 2017/10/19.
+ * jedis操作redis哨兵模式
  */
 public class JedisSentinelTest {
 

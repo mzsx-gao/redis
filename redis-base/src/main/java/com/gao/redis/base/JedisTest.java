@@ -18,7 +18,7 @@ public class JedisTest {
     @Before
     public void beforeTest(){
 
-        jedis = new Jedis("192.168.0.103", 6379);
+        jedis = new Jedis("172.16.36.15", 6379);
     }
 
     @After
