@@ -11,18 +11,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *   名称: RedisClusterTest.java
- *   描述: redis常用操作
- *   类型: JAVA
- *   最近修改时间:2017/10/31 14:36
- *   @version [版本号, V1.0]
- *   @since 2017/10/31 14:36
- *   @author gaoshudian
- */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes= Application.class)
-public class RedisClusterTest {
+public class RedisTest {
 
     @Autowired
     private RedisTemplate redisTemplate;

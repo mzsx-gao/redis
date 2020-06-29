@@ -23,7 +23,7 @@ public class JedisPoolTest {
         poolConfig.setMaxWaitMillis(1000);//设置最大等待时间
         poolConfig.setTestOnBorrow(true);//对拿到的connection进行validateObject校验
 
-        pool = new JedisPool(poolConfig,"172.16.36.15",6379);
+        pool = new JedisPool(poolConfig,"172.16.216.128",6379);
         jedis = pool.getResource();
     }
 

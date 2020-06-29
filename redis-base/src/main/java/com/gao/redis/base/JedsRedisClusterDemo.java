@@ -40,10 +40,6 @@ public class JedsRedisClusterDemo {
         for (int x = 0; x < 1000; x++) {
             jedisCluster.set("mldnjava-" + x, "Hello - " + x);
         }
-        try {
-            jedisCluster.close();// 关闭Redis集群连接
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        jedisCluster.close();// 关闭Redis集群连接
     }
 }
