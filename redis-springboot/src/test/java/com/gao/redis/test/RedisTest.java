@@ -20,36 +20,36 @@ public class RedisTest {
 
     //字符串操作
     @Test
-    public void set(){
+    public void stringTest(){
         redisTemplate.opsForValue().set("test","test");
+        System.out.println(redisTemplate.opsForValue().get("test"));
+
+        User user = new User();
+        user.setAge(29);
+        user.setName("gsd");
+        redisTemplate.opsForValue().set("user",user);
+
+        System.out.println(redisTemplate.opsForValue().get("user"));
+
     }
+
 
     //Hash类型操作
     @Test
-    public void hsetput(){
-        String key="dev:repayment:cache:contract_info";
+    public void hashTest(){
+        String key="hashTest";
         redisTemplate.opsForHash().put(key,"hello","hello");
-    }
-    @Test
-    public void hsetputAll(){
-        String key="dev:repayment:cache:contract_info";
+
         Map<String,String> map = new HashMap<>();
         map.put("hello","hello");
         map.put("hello2","hello2");
         redisTemplate.opsForHash().putAll(key,map);
-    }
-    @Test
-    public void hget(){
-        String key="dev:repayment:cache:contract_info";
+
         String hashKey = "hello";
-        String hashValue = redisTemplate.opsForHash().get(key,hashKey).toString();
-        System.out.println(hashValue);
-    }
-    @Test
-    public void hdel(){
-        String key="dev:repayment:cache:contract_info";
-        String hashKey = "hello";
+        System.out.println(redisTemplate.opsForHash().get(key,hashKey));
+
         redisTemplate.opsForHash().delete(key,hashKey);
+
     }
 
 }
