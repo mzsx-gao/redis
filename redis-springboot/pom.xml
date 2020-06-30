@@ -13,8 +13,6 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
         <spring-boot-starter.version>2.2.2.RELEASE</spring-boot-starter.version>
         <spring-data-redis.version>2.2.2.RELEASE</spring-data-redis.version>
         <jedis.version>3.3.0</jedis.version>
