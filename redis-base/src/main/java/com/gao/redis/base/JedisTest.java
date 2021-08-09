@@ -17,7 +17,8 @@ public class JedisTest {
 
     @Before
     public void beforeTest() {
-        jedis = new Jedis("172.16.216.128", 6379);
+        jedis = new Jedis("106.12.81.240", 6380);
+        jedis.auth("beiwu");
     }
 
     @After
