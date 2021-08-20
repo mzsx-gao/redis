@@ -11,6 +11,7 @@
         <module>redis-base</module>
         <module>redis-spring-data</module>
         <module>redis-springboot</module>
+        <module>redis-demo</module>
     </modules>
     <packaging>pom</packaging>
     <properties>

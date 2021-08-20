@@ -123,7 +123,7 @@ public class JedisTest {
     //ZSet类型
     @Test
     public void testSortedSet() {
-        Map<String, Double> map = new HashMap<String, Double>();
+        Map<String, Double> map = new HashMap<>();
         map.put("name", 2.0);
         map.put("age", 1.0);
         map.put("qq", 5.0);
