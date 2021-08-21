@@ -52,7 +52,7 @@ public class ZSetVer {
                 if (order == null || order.isEmpty()) {
                     System.out.println("当前没有等待的任务");
                     try {
-                        TimeUnit.MICROSECONDS.sleep(1000);
+                        TimeUnit.MICROSECONDS.sleep(10000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

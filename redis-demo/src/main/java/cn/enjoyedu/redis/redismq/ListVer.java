@@ -21,6 +21,7 @@ public class ListVer {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            //brop-阻塞读取数据
             return jedis.brpop(0, RS_LIST_MQ_NS + key);
         } catch (Exception e) {
             throw new RuntimeException("接受消息失败！");
