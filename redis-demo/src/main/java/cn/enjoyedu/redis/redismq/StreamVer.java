@@ -83,10 +83,13 @@ public class StreamVer {
             jedis = jedisPool.getResource();
             /*消息消费时的参数*/
             XReadGroupParams xReadGroupParams = new XReadGroupParams().block(0).count(1);
+            //从哪个stream的哪个位置开始读取
             Map<String, StreamEntryID> streams = new HashMap<>();
             streams.put(RS_STREAM_MQ_NS + key, StreamEntryID.UNRECEIVED_ENTRY);
+            // 等同于命令行:xreadgroup Group cg1 c1 block 0 count 1 streams streamtest >
+            // > 号表示从当前消费组的 last_delivered_id 后面开始读，每当消费者读取一条消息，last_delivered_id 变量就会前进
             List<Map.Entry<String, List<StreamEntry>>> result
-                = jedis.xreadGroup(groupName, customerName, xReadGroupParams, streams);
+                    = jedis.xreadGroup(groupName, customerName, xReadGroupParams, streams);
             System.out.println(groupName + "从" + RS_STREAM_MQ_NS + key + "接受消息, 返回消息：" + result);
             return result;
         } catch (Exception e) {
@@ -117,9 +120,9 @@ public class StreamVer {
         }
     }
 
-    /*
-    检查消费者群组是否存在，辅助方法
-    * */
+    /**
+     * 检查消费者群组是否存在，辅助方法
+     */
     public boolean checkGroup(String key, String groupName) {
         Jedis jedis = null;
         try {
@@ -186,5 +189,4 @@ public class StreamVer {
             jedis.close();
         }
     }
-
 }

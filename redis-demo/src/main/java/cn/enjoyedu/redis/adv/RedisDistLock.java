@@ -18,20 +18,17 @@ import java.util.concurrent.locks.Lock;
 @Component
 public class RedisDistLock implements Lock {
 
-    private final static int LOCK_TIME = 5*1000;
+    private final static int LOCK_TIME = 5 * 1000;
     private final static String RS_DISTLOCK_NS = "tdln:";
-    /*
-     if redis.call('get',KEYS[1])==ARGV[1] then
-        return redis.call('del', KEYS[1])
-    else return 0 end
-     */
     private final static String RELEASE_LOCK_LUA =
-            "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
-                    "        return redis.call('del', KEYS[1])\n" +
-                    "    else return 0 end";
+            " if redis.call('get',KEYS[1])==ARGV[1] then   \n" +
+                    "    return redis.call('del', KEYS[1])         \n" +
+                    " else                                         \n" +
+                    "    return 0                                  \n" +
+                    " end                                          ";
+
     /*保存每个线程的独有的ID值*/
     private ThreadLocal<String> lockerId = new ThreadLocal<>();
-
     /*解决锁的重入*/
     private Thread ownerThread;
     private String lockName = "lock";
@@ -57,7 +54,7 @@ public class RedisDistLock implements Lock {
 
     @Override
     public void lock() {
-        while(!tryLock()){
+        while (!tryLock()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -74,9 +71,9 @@ public class RedisDistLock implements Lock {
     @Override
     public boolean tryLock() {
         Thread t = Thread.currentThread();
-        if(ownerThread==t){/*说明本线程持有锁*/
+        if (ownerThread == t) {//说明本线程持有锁
             return true;
-        }else if(ownerThread!=null){/*本进程里有其他线程持有分布式锁*/
+        } else if (ownerThread != null) {/*本进程里有其他线程持有分布式锁*/
             return false;
         }
         Jedis jedis = null;
@@ -85,13 +82,13 @@ public class RedisDistLock implements Lock {
             SetParams params = new SetParams();
             params.px(LOCK_TIME);
             params.nx();
-            synchronized (this){/*线程们，本地抢锁*/
-                if((ownerThread==null)&&
-                "OK".equals(jedis.set(RS_DISTLOCK_NS+lockName,id,params))){
+            synchronized (this) {//线程本地抢锁,这个设计很关键，先抢本地，再抢网络上
+                if ((ownerThread == null) //这个设计也很关键，类似于双重判断，如果ownerThread不为空就没必要去网络上抢锁
+                        && "OK".equals(jedis.set(RS_DISTLOCK_NS + lockName, id, params))) {
                     lockerId.set(id);
                     setOwnerThread(t);
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -109,24 +106,24 @@ public class RedisDistLock implements Lock {
 
     @Override
     public void unlock() {
-        if(ownerThread!=Thread.currentThread()) {
+        if (ownerThread != Thread.currentThread()) {
             throw new RuntimeException("试图释放无所有权的锁！");
         }
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            Long result = (Long)jedis.eval(RELEASE_LOCK_LUA,
-                    Arrays.asList(RS_DISTLOCK_NS+lockName),
+            Long result = (Long) jedis.eval(RELEASE_LOCK_LUA,
+                    Arrays.asList(RS_DISTLOCK_NS + lockName),
                     Arrays.asList(lockerId.get()));
-            if(result.longValue()!=0L){
+            if (result.longValue() != 0L) {
                 System.out.println("Redis上的锁已释放！");
-            }else{
+            } else {
                 System.out.println("Redis上的锁释放失败！");
             }
         } catch (Exception e) {
-            throw new RuntimeException("释放锁失败！",e);
+            throw new RuntimeException("释放锁失败！", e);
         } finally {
-            if(jedis!=null) jedis.close();
+            if (jedis != null) jedis.close();
             lockerId.remove();
             setOwnerThread(null);
             System.out.println("本地锁所有权已释放！");
