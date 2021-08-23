@@ -20,7 +20,7 @@ public class TestRedisDistLockWithDogV2 {
 
     @Test
     public void testLockWithDog() throws InterruptedException {
-        int clientCount = 2;
+        int clientCount = 5;
         CountDownLatch countDownLatch = new CountDownLatch(clientCount);
         ExecutorService executorService = Executors.newFixedThreadPool(clientCount);
         for (int i = 0; i < clientCount; i++) {

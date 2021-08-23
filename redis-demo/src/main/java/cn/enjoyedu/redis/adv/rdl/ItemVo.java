@@ -13,8 +13,10 @@ public class ItemVo<T> implements Delayed {
     /*业务数据，泛型*/
     private T data;
 
-    /* 传入的数值代表过期的时长，单位毫秒，需要乘1000转换为毫秒和到期时间
-     * 同时提前100毫秒续期,具体的时间可以自己决定*/
+    /**
+     * 传入的数值代表过期的时长，单位毫秒，需要乘1000转换为毫秒和到期时间
+     * 同时提前100毫秒续期,具体的时间可以自己决定
+     */
     public ItemVo(long expirationTime, T data) {
         super();
         this.activeTime = expirationTime + System.currentTimeMillis() - 100;
@@ -41,8 +43,7 @@ public class ItemVo<T> implements Delayed {
      * 按剩余时长排序
      */
     public int compareTo(Delayed o) {
-        long d = (getDelay(TimeUnit.MILLISECONDS)
-            - o.getDelay(TimeUnit.MILLISECONDS));
+        long d = (getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS));
         if (d == 0) {
             return 0;
         } else {
