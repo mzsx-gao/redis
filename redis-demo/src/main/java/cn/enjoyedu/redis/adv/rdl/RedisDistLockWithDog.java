@@ -96,13 +96,11 @@ public class RedisDistLockWithDog implements Lock {
                         "OK".equals(jedis.set(RS_DISTLOCK_NS + lockName, id, params))) {
                     lockerId.set(id);
                     setOwnerThread(t);
-//                    System.out.println(RS_DISTLOCK_NS+lockName);
-//                    System.out.println(lockerId.get());
                     if (expireThread == null) {
                         expireThread = new Thread(new ExpireTask(), "expireThread");
                         expireThread.start();
                     }
-                    delayDog.add(new ItemVo<>((int) LOCK_TIME, new LockItem(lockName, id)));
+                    delayDog.add(new ItemVo<>(LOCK_TIME, new LockItem(lockName, id)));
                     System.out.println(Thread.currentThread().getName() + "已获得锁----");
                     return true;
                 } else {
@@ -133,7 +131,7 @@ public class RedisDistLockWithDog implements Lock {
             Long result = (Long) jedis.eval(RELEASE_LOCK_LUA,
                     Arrays.asList(RS_DISTLOCK_NS + lockName),
                     Arrays.asList(lockerId.get()));
-            System.out.println(result);
+//            System.out.println(result);
 //            System.out.println(RS_DISTLOCK_NS+lockName);
 //            System.out.println(lockerId.get());
             if (result.longValue() != 0L) {
@@ -158,8 +156,7 @@ public class RedisDistLockWithDog implements Lock {
 
     /*看门狗线程*/
     private Thread expireThread;
-    private static DelayQueue<ItemVo<LockItem>> delayDog
-            = new DelayQueue<>();
+    private static DelayQueue<ItemVo<LockItem>> delayDog = new DelayQueue<>();
     private final static String DELAY_LOCK_LUA =
             "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
                     "        return redis.call('pexpire', KEYS[1],ARGV[2])\n" +
@@ -190,8 +187,7 @@ public class RedisDistLockWithDog implements Lock {
                              * 1、最大续期次数
                              * 2、判断工作的线程存活情况
                              * 3、由工作线程通知看门狗来续期*/
-                            delayDog.add(new ItemVo<>((int) LOCK_TIME,
-                                    new LockItem(lockItem.getKey(), lockItem.getValue())));
+                            delayDog.add(new ItemVo<>(LOCK_TIME, new LockItem(lockItem.getKey(), lockItem.getValue())));
                             System.out.println("Redis上的锁还未释放，重新进入待续期检查！");
                         }
                     } catch (Exception e) {

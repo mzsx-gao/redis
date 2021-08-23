@@ -1,5 +1,6 @@
 package cn.enjoyedu.redis.adv.rdl;
 
+
 public class LockItem {
     private final String key;
     private final String value;
@@ -15,5 +16,13 @@ public class LockItem {
 
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return "LockItem{" +
+            "key='" + key + '\'' +
+            ", value='" + value + '\'' +
+            '}';
     }
 }

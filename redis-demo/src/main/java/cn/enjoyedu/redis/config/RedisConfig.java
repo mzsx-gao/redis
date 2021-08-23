@@ -12,22 +12,18 @@ import redis.clients.jedis.JedisPoolConfig;
 public class RedisConfig {
     @Value("${redis.host}")
     private String host;
-
     @Value("${redis.port}")
     private int port;
-
+    @Value("${redis.password}")
+    private String password;
     @Value("${redis.timeout}")
     private int timeout;
-
     @Value("${redis.maxIdle}")
     private int maxIdle;
-
     @Value("${redis.maxWaitMillis}")
     private int maxWaitMillis;
-
     @Value("${redis.blockWhenExhausted}")
     private Boolean blockWhenExhausted;
-
     @Value("${redis.JmxEnabled}")
     private Boolean JmxEnabled;
 
@@ -40,7 +36,7 @@ public class RedisConfig {
         jedisPoolConfig.setBlockWhenExhausted(blockWhenExhausted);
         // 是否启用pool的jmx管理功能, 默认true
         jedisPoolConfig.setJmxEnabled(JmxEnabled);
-        JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout);
+        JedisPool jedisPool = new JedisPool(jedisPoolConfig, host, port, timeout,password);
         return jedisPool;
     }
 }

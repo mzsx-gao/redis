@@ -13,7 +13,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 /**
- * 分布式锁的实现
+ * 分布式锁的实现：
+ * 这种方案如果业务代码执行时间超过锁的过期时间就会有问题
  */
 @Component
 public class RedisDistLock implements Lock {
@@ -21,11 +22,11 @@ public class RedisDistLock implements Lock {
     private final static int LOCK_TIME = 5 * 1000;
     private final static String RS_DISTLOCK_NS = "tdln:";
     private final static String RELEASE_LOCK_LUA =
-            " if redis.call('get',KEYS[1])==ARGV[1] then   \n" +
-                    "    return redis.call('del', KEYS[1])         \n" +
-                    " else                                         \n" +
-                    "    return 0                                  \n" +
-                    " end                                          ";
+        " if redis.call('get',KEYS[1])==ARGV[1] then       \n" +
+            "    return redis.call('del', KEYS[1])         \n" +
+            " else                                         \n" +
+            "    return 0                                  \n" +
+            " end                                          ";
 
     /*保存每个线程的独有的ID值*/
     private ThreadLocal<String> lockerId = new ThreadLocal<>();
@@ -63,11 +64,7 @@ public class RedisDistLock implements Lock {
         }
     }
 
-    @Override
-    public void lockInterruptibly() throws InterruptedException {
-        throw new UnsupportedOperationException("不支持可中断获取锁！");
-    }
-
+    //加锁逻辑
     @Override
     public boolean tryLock() {
         Thread t = Thread.currentThread();
@@ -78,13 +75,14 @@ public class RedisDistLock implements Lock {
         }
         Jedis jedis = null;
         try {
+            jedis = jedisPool.getResource();
             String id = UUID.randomUUID().toString();
             SetParams params = new SetParams();
             params.px(LOCK_TIME);
             params.nx();
             synchronized (this) {//线程本地抢锁,这个设计很关键，先抢本地，再抢网络上
                 if ((ownerThread == null) //这个设计也很关键，类似于双重判断，如果ownerThread不为空就没必要去网络上抢锁
-                        && "OK".equals(jedis.set(RS_DISTLOCK_NS + lockName, id, params))) {
+                    && "OK".equals(jedis.set(RS_DISTLOCK_NS + lockName, id, params))) {
                     lockerId.set(id);
                     setOwnerThread(t);
                     return true;
@@ -99,11 +97,7 @@ public class RedisDistLock implements Lock {
         }
     }
 
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        throw new UnsupportedOperationException("不支持等待尝试获取锁！");
-    }
-
+    //解锁逻辑
     @Override
     public void unlock() {
         if (ownerThread != Thread.currentThread()) {
@@ -113,21 +107,31 @@ public class RedisDistLock implements Lock {
         try {
             jedis = jedisPool.getResource();
             Long result = (Long) jedis.eval(RELEASE_LOCK_LUA,
-                    Arrays.asList(RS_DISTLOCK_NS + lockName),
-                    Arrays.asList(lockerId.get()));
+                Arrays.asList(RS_DISTLOCK_NS + lockName),
+                Arrays.asList(lockerId.get()));
             if (result.longValue() != 0L) {
-                System.out.println("Redis上的锁已释放！");
+                System.out.println(Thread.currentThread().getName() + "Redis上的锁已释放！");
             } else {
-                System.out.println("Redis上的锁释放失败！");
+                System.out.println(Thread.currentThread().getName() + "Redis上的锁释放失败！");
             }
         } catch (Exception e) {
-            throw new RuntimeException("释放锁失败！", e);
+            throw new RuntimeException(Thread.currentThread().getName() + "释放锁失败！", e);
         } finally {
             if (jedis != null) jedis.close();
             lockerId.remove();
             setOwnerThread(null);
-            System.out.println("本地锁所有权已释放！");
+            System.out.println(Thread.currentThread().getName() + "本地锁所有权已释放！");
         }
+    }
+
+    @Override
+    public void lockInterruptibly() throws InterruptedException {
+        throw new UnsupportedOperationException("不支持可中断获取锁！");
+    }
+
+    @Override
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException("不支持等待尝试获取锁！");
     }
 
     @Override
