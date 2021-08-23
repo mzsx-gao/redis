@@ -1,6 +1,7 @@
 package cn.enjoyedu.redis.adv.rdl.demo2;
 
 import cn.enjoyedu.redis.adv.rdl.ItemVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -19,6 +20,7 @@ import java.util.concurrent.locks.Lock;
  * 分布式锁，附带看门狗线程的实现V2版
  */
 @Component
+@Slf4j
 public class RedisDistLockWithDogV2 implements Lock {
 
     private final static int LOCK_TIME = 1 * 1000;
@@ -99,10 +101,10 @@ public class RedisDistLockWithDogV2 implements Lock {
                         expireThread.start();
                     }
                     delayDog.add(new ItemVo<>(LOCK_TIME, new LockItemV2(lockName, id, true, Thread.currentThread())));
-                    System.out.println(Thread.currentThread().getName() + "已获得锁----");
+                    log.info(Thread.currentThread().getName() + "已获得锁----");
                     return true;
                 } else {
-                    //System.out.println(Thread.currentThread().getName()+"无法获得锁----");
+                    //log.info(Thread.currentThread().getName()+"无法获得锁----");
                     return false;
                 }
             }
@@ -125,9 +127,9 @@ public class RedisDistLockWithDogV2 implements Lock {
                 Arrays.asList(RS_DISTLOCK_NS + lockName),
                 Arrays.asList(lockerId.get()));
             if (result.longValue() != 0L) {
-                System.out.println("Redis上的锁已释放！");
+                log.info("Redis上的锁已释放！");
             } else {
-                System.out.println("Redis上的锁释放失败" + ",可能是锁的key不存在，或者这个锁非本线程所有！");
+                log.info("Redis上的锁释放失败" + ",可能是锁的key不存在，或者这个锁非本线程所有！");
             }
         } catch (Exception e) {
             delayDog.add(new ItemVo<>(RETRY_LOCK_INTERVAL,
@@ -137,7 +139,7 @@ public class RedisDistLockWithDogV2 implements Lock {
             if (jedis != null) jedis.close();
             lockerId.remove();
             setOwnerThread(null);
-            System.out.println("本地锁所有权已释放！");
+            log.info("本地锁所有权已释放！");
         }
     }
 
@@ -170,12 +172,12 @@ public class RedisDistLockWithDogV2 implements Lock {
 
         @Override
         public void run() {
-            System.out.println("看门狗线程已启动......");
+            log.info("看门狗线程已启动......");
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    //System.out.println("开始监视锁的过期情况.....");
+                    //log.info("开始监视锁的过期情况.....");
                     LockItemV2 lockItem = delayDog.take().getData();
-                    System.out.println("Redis上的锁准备续期检查....." + lockItem);
+                    log.info("Redis上的锁准备续期检查....." + lockItem);
                     Jedis jedis = null;
                     try {
                         jedis = jedisPool.getResource();
@@ -188,16 +190,16 @@ public class RedisDistLockWithDogV2 implements Lock {
                                     Arrays.asList(RS_DISTLOCK_NS + lockItem.getKey()),
                                     Arrays.asList(lockItem.getValue()));
                             } catch (Exception e) {
-                                System.out.println("清除锁异常！" + e.getMessage());
+                                log.info("清除锁异常！" + e.getMessage());
                             } finally {
                                 if (result == null) {
                                     delayDog.add(new ItemVo<>(RETRY_LOCK_INTERVAL,
                                         new LockItemV2(lockItem.getKey(), lockItem.getValue(), false, lockThread)));
-                                    System.out.println("清除锁异常，快速重试！");
+                                    log.info("清除锁异常，快速重试！");
                                 } else if (result.longValue() != 0) {
-                                    System.out.println("Redis上的锁已清除！");
+                                    log.info("Redis上的锁已清除！");
                                 } else {
-                                    System.out.println("Redis上的锁清除失败,可能是锁的key[" + RS_DISTLOCK_NS + lockItem.getKey()
+                                    log.info("Redis上的锁清除失败,可能是锁的key[" + RS_DISTLOCK_NS + lockItem.getKey()
                                         + "]不存在，或者这个锁非线程[" + lockThread + "][" + lockItem.getValue() + "]所有！");
                                 }
                             }
@@ -213,18 +215,18 @@ public class RedisDistLockWithDogV2 implements Lock {
                                     result = 0L;
                                 }
                             } catch (Exception e) {
-                                System.out.println("锁续期异常！" + e.getMessage());
+                                log.info("锁续期异常！" + e.getMessage());
                             } finally {
                                 if (result == null) {
                                     delayDog.add(new ItemVo<>(RETRY_LOCK_INTERVAL,
                                         new LockItemV2(lockItem.getKey(), lockItem.getValue(), true, lockThread)));
-                                    System.out.println("锁续期异常，快速重试！");
+                                    log.info("锁续期异常，快速重试！");
                                 } else if (result.longValue() == 0) {
-                                    System.out.println("锁已释放，无需续期！");
+                                    log.info("锁已释放，无需续期！");
                                 } else {
                                     delayDog.add(new ItemVo<>(LOCK_TIME,
                                         new LockItemV2(lockItem.getKey(), lockItem.getValue(), true, lockThread)));
-                                    System.out.println("Redis上的锁还未释放，重新进入待续期检查！");
+                                    log.info("Redis上的锁还未释放，重新进入待续期检查！");
                                 }
                             }
                         }
@@ -234,11 +236,11 @@ public class RedisDistLockWithDogV2 implements Lock {
                         if (jedis != null) jedis.close();
                     }
                 } catch (InterruptedException e) {
-                    System.out.println("看门狗线程被中断");
+                    log.info("看门狗线程被中断");
                     break;
                 }
             }
-            System.out.println("看门狗线程准备关闭......");
+            log.info("看门狗线程准备关闭......");
         }
     }
 
