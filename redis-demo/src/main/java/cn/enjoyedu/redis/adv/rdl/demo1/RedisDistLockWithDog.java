@@ -1,5 +1,6 @@
-package cn.enjoyedu.redis.adv.rdl;
+package cn.enjoyedu.redis.adv.rdl.demo1;
 
+import cn.enjoyedu.redis.adv.rdl.ItemVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -116,11 +117,6 @@ public class RedisDistLockWithDog implements Lock {
     }
 
     @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        throw new UnsupportedOperationException("不支持等待尝试获取锁！");
-    }
-
-    @Override
     public void unlock() {
         if (ownerThread != Thread.currentThread()) {
             throw new RuntimeException("试图释放无所有权的锁！");
@@ -131,9 +127,6 @@ public class RedisDistLockWithDog implements Lock {
             Long result = (Long) jedis.eval(RELEASE_LOCK_LUA,
                     Arrays.asList(RS_DISTLOCK_NS + lockName),
                     Arrays.asList(lockerId.get()));
-//            System.out.println(result);
-//            System.out.println(RS_DISTLOCK_NS+lockName);
-//            System.out.println(lockerId.get());
             if (result.longValue() != 0L) {
                 System.out.println("Redis上的锁已释放！");
             } else {
@@ -150,6 +143,10 @@ public class RedisDistLockWithDog implements Lock {
     }
 
     @Override
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException("不支持等待尝试获取锁！");
+    }
+    @Override
     public Condition newCondition() {
         throw new UnsupportedOperationException("不支持等待通知操作！");
     }
@@ -157,6 +154,8 @@ public class RedisDistLockWithDog implements Lock {
     /*看门狗线程*/
     private Thread expireThread;
     private static DelayQueue<ItemVo<LockItem>> delayDog = new DelayQueue<>();
+
+    //锁续期
     private final static String DELAY_LOCK_LUA =
             "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
                     "        return redis.call('pexpire', KEYS[1],ARGV[2])\n" +
@@ -178,8 +177,6 @@ public class RedisDistLockWithDog implements Lock {
                         Long result = (Long) jedis.eval(DELAY_LOCK_LUA,
                                 Arrays.asList(RS_DISTLOCK_NS + lockItem.getKey()),
                                 Arrays.asList(lockItem.getValue(), LOCK_TIME_STR));
-//                        System.out.println(RS_DISTLOCK_NS+lockItem.getKey());
-//                        System.out.println(lockItem.getValue());
                         if (result.longValue() == 0L) {
                             System.out.println("Redis上的锁已释放，无需续期！");
                         } else {

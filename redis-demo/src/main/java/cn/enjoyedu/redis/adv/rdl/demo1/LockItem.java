@@ -1,4 +1,4 @@
-package cn.enjoyedu.redis.adv.rdl;
+package cn.enjoyedu.redis.adv.rdl.demo1;
 
 
 public class LockItem {
