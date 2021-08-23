@@ -18,18 +18,17 @@ public class TestRedisDistLockWithDogV2 {
     private RedisDistLockWithDogV2 redisDistLockWithDogV2;
     private int count = 0;
 
-
     @Test
     public void testLockWithDog() throws InterruptedException {
-        int clientCount =5;
+        int clientCount = 2;
         CountDownLatch countDownLatch = new CountDownLatch(clientCount);
         ExecutorService executorService = Executors.newFixedThreadPool(clientCount);
-        for (int i = 0;i<clientCount;i++){
+        for (int i = 0; i < clientCount; i++) {
             executorService.execute(() -> {
                 try {
                     redisDistLockWithDogV2.lock();
-                    System.out.println(Thread.currentThread().getName()+"准备进行累加。");
-                    Thread.sleep(2000);
+                    System.out.println(Thread.currentThread().getName() + "准备进行累加。");
+                    Thread.sleep(2500);
                     count++;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -40,7 +39,6 @@ public class TestRedisDistLockWithDogV2 {
             });
         }
         countDownLatch.await();
-        System.out.println(count);
+        System.out.println("最终数值:" + count);
     }
-
 }
