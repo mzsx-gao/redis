@@ -2,6 +2,7 @@ package cn.enjoyedu.redis.adv.rdl;
 
 
 public class LockItem {
+
     private final String key;
     private final String value;
 

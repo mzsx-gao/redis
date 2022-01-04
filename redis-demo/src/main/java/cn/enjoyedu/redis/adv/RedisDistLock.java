@@ -22,7 +22,7 @@ public class RedisDistLock implements Lock {
     private final static int LOCK_TIME = 5 * 1000;
     private final static String RS_DISTLOCK_NS = "tdln:";
     private final static String RELEASE_LOCK_LUA =
-        " if redis.call('get',KEYS[1])==ARGV[1] then       \n" +
+            " if redis.call('get',KEYS[1])==ARGV[1] then   \n" +
             "    return redis.call('del', KEYS[1])         \n" +
             " else                                         \n" +
             "    return 0                                  \n" +

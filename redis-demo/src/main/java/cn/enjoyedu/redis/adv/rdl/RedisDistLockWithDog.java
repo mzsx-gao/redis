@@ -30,8 +30,8 @@ public class RedisDistLockWithDog implements Lock {
      */
     private final static String RELEASE_LOCK_LUA =
             "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
-                    "        return redis.call('del', KEYS[1])\n" +
-                    "    else return 0 end";
+            "        return redis.call('del', KEYS[1])\n" +
+            "else return 0 end";
 
     private ThreadLocal<String> lockerId = new ThreadLocal<>();
 
@@ -159,11 +159,10 @@ public class RedisDistLockWithDog implements Lock {
     private static DelayQueue<ItemVo<LockItem>> delayDog = new DelayQueue<>();
     private final static String DELAY_LOCK_LUA =
             "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
-                    "        return redis.call('pexpire', KEYS[1],ARGV[2])\n" +
-                    "    else return 0 end";
+            "    return redis.call('pexpire', KEYS[1],ARGV[2])\n" +
+            "else return 0 end";
 
     private class ExpireTask implements Runnable {
-
         @Override
         public void run() {
             System.out.println("看门狗线程已启动......");
