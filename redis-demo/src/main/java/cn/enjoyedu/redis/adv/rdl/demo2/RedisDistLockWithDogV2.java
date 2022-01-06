@@ -66,6 +66,7 @@ public class RedisDistLockWithDogV2 implements Lock {
     public void lock() {
         while (!tryLock()) {
             try {
+                //这里也可以用wait-notify机制来实现
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -91,7 +92,8 @@ public class RedisDistLockWithDogV2 implements Lock {
             SetParams params = new SetParams();
             params.px(LOCK_TIME);
             params.nx();
-            synchronized (this) {
+            synchronized (this) {//线程本地抢锁,这个设计很关键，先抢本地，再抢网络上
+                //这个设计也很关键，类似于双重判断，如果ownerThread不为空就没必要去网络上抢锁
                 if ((ownerThread == null) &&
                     "OK".equals(jedis.set(RS_DISTLOCK_NS + lockName, id, params))) {
                     lockerId.set(id);
