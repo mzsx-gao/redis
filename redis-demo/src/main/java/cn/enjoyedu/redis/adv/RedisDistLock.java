@@ -28,9 +28,9 @@ public class RedisDistLock implements Lock {
             "    return 0                                  \n" +
             " end                                          ";
 
-    /*保存每个线程的独有的ID值*/
+    //保存每个线程的独有的ID值
     private ThreadLocal<String> lockerId = new ThreadLocal<>();
-    /*解决锁的重入*/
+    //解决锁的重入
     private Thread ownerThread;
     private String lockName = "lock";
 
@@ -70,7 +70,7 @@ public class RedisDistLock implements Lock {
         Thread t = Thread.currentThread();
         if (ownerThread == t) {//说明本线程持有锁
             return true;
-        } else if (ownerThread != null) {/*本进程里有其他线程持有分布式锁*/
+        } else if (ownerThread != null) {//本进程里有其他线程持有分布式锁
             return false;
         }
         Jedis jedis = null;

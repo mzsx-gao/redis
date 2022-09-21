@@ -27,7 +27,7 @@ public class RedisDistLockWithDog implements Lock {
     /*
      if redis.call('get',KEYS[1])==ARGV[1] then
         return redis.call('del', KEYS[1])
-    else return 0 end
+     else return 0 end
      */
     private final static String RELEASE_LOCK_LUA =
             "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
@@ -124,9 +124,7 @@ public class RedisDistLockWithDog implements Lock {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            Long result = (Long) jedis.eval(RELEASE_LOCK_LUA,
-                    Arrays.asList(RS_DISTLOCK_NS + lockName),
-                    Arrays.asList(lockerId.get()));
+            Long result = (Long) jedis.eval(RELEASE_LOCK_LUA, Arrays.asList(RS_DISTLOCK_NS + lockName), Arrays.asList(lockerId.get()));
             if (result.longValue() != 0L) {
                 System.out.println("Redis上的锁已释放！");
             } else {

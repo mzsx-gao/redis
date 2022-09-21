@@ -8,10 +8,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ItemVo<T> implements Delayed {
 
-    /*到期时刻  20:00:35,234*/
-    private long activeTime;
-    /*业务数据，泛型*/
-    private T data;
+
+    private long activeTime;    //到期时刻  20:00:35,234
+    private T data;             //业务数据，泛型
 
     /**
      * 传入的数值代表过期的时长，单位毫秒，需要乘1000转换为毫秒和到期时间
@@ -21,14 +20,6 @@ public class ItemVo<T> implements Delayed {
         super();
         this.activeTime = expirationTime + System.currentTimeMillis() - 100;
         this.data = data;
-    }
-
-    public long getActiveTime() {
-        return activeTime;
-    }
-
-    public T getData() {
-        return data;
     }
 
     /**
@@ -53,5 +44,13 @@ public class ItemVo<T> implements Delayed {
                 return 1;
             }
         }
+    }
+
+    public long getActiveTime() {
+        return activeTime;
+    }
+
+    public T getData() {
+        return data;
     }
 }

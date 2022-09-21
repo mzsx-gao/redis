@@ -27,10 +27,10 @@ public class RedisDistLockWithDogV2 implements Lock {
     private final static String LOCK_TIME_STR = String.valueOf(LOCK_TIME);
     private final static String RS_DISTLOCK_NS = "tdln2:";
 
-    /*
-     if redis.call('get',KEYS[1])==ARGV[1] then
-        return redis.call('del', KEYS[1])
-    else return 0 end
+    /**
+     * if redis.call('get',KEYS[1])==ARGV[1] then
+     *    return redis.call('del', KEYS[1])
+     * else return 0 end
      */
     private final static String RELEASE_LOCK_LUA =
         "if redis.call('get',KEYS[1])==ARGV[1] then\n" +
